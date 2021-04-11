@@ -7,8 +7,8 @@ import os
 
 
 def work(fileName):
+    f=craft(str(fileName))#결제 완료&결제 대기인 목록을 분리하여 각각의 파일에 담는다
     tkm.showwarning("안내", "잠시 기다려주세요, 데이터가 많을수록 시간이 걸립니다.")
-    f=craft(fileName)#결제 완료&결제 대기인 목록을 분리하여 각각의 파일에 담는다
     second_work(first_work(f))
 
 
@@ -98,21 +98,22 @@ def load():
     root = Tk()
     root.withdraw()
     try:
-        work(filedialog.askopenfilename(initialdir="./", title="Open Data files",
-                                    filetypes=(("data files", "*.csv;*.xls;*.xlsx"), ("all files", "*.*"))))
+        f=filedialog.askopenfilename(initialdir="./", title="Open Data files",
+                                    filetypes=(("data files", "*.csv;*.xls;*.xlsx"), ("all files", "*.*")))
+        print(f)
+        work(f)
     except:tkm.showwarning("경고", "잘못된 파일입니다.")
 
+def main():
+    root = Tk()
+    root.title("엑셀자동처리_텀블벅")
+    root.geometry("300x100")
+    btn = Button(root,text="실행",command=load,padx=24)
+    btn2 = Button(root,text="실행 종료", command=root.destroy,padx=10)
+    btn.pack()
+    btn2.pack()
+    root.mainloop()
 
 
-main = Tk()
-main.title("엑셀자동처리_텀블벅")
-main.geometry("300x100")
-var = StringVar()
-Msg = Message(main, textvariable = var)
-var.set("Click")
-Msg.pack()
-btn = Button(main,text="실행",command=load,padx=10)
-
-btn.pack()
-
-main.mainloop()
+if __name__ == '__main__':
+    main()
