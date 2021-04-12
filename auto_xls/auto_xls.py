@@ -7,7 +7,7 @@ import os
 
 
 def work(fileName):
-    f=craft(str(fileName))#결제 완료&결제 대기인 목록을 분리하여 각각의 파일에 담는다
+    f=craft(os.path.join(os.path.abspath(fileName)))#결제 완료&결제 대기인 목록을 분리하여 각각의 파일에 담는다
     tkm.showwarning("안내", "잠시 기다려주세요, 데이터가 많을수록 시간이 걸립니다.")
     second_work(first_work(f))
 
@@ -29,8 +29,8 @@ def craft(f):#결제 누락 항목 제거& 결제 대기 항목은 다른 엑셀
     file.fillna(" ",inplace=True)#결측지는 "non"으로 대체
     wait=file[file['결제상태'] == '결제 대기']#결제 대기인 사람만 필터링
     file=file[file['결제상태'] == '결제 완료']#결제 완료가 된 사람만 필터링
-
     final = f.split(".")[0] + '_결제완료.xlsx'
+
     if not os.path.exists(final):            #'원본파일명_결제완료.xlsx'가 폴더에 없을 경우 새 파일을 만든다
         with pd.ExcelWriter( final, mode='w', engine='openpyxl') as writer:
             file.to_excel(writer, index=False,sheet_name="결제 완료")
@@ -63,12 +63,15 @@ def first_work(f):#상품 항목별 개수 카운트
             for i2 in li2:
                 if i2 not in count: count[i2]=1#이전에 없던 것이면 딕셔너리에 키와 벨류 추가
                 else :count[i2]+=1#이전에 있던 것이면 딕셔너리에 벨류만 추가
+
         del count[" "]#결측치 제거
+
         df=pd.DataFrame({'상품명':count.keys(),'개수':count.values()})#딕셔너리를 데이터프레임으로 변경
         with pd.ExcelWriter(f, mode='a', engine='openpyxl') as writer:
             # openpyxl을 엔진으로 이용해서 파일에 상품 개수라는 시트명 붙이고 시트를 추가해 데이터프레임을 저장
             df.to_excel(writer, index=False, sheet_name="옵션 상품 개수")
             return f
+
     else:#옵션 항목이 없을 경우
         li2=file["그룹명"].tolist()#그룹명 칼럼을 리스트로 가져온다
         for i2 in li2:
@@ -86,7 +89,8 @@ def second_work(f):#입금한 순서대로 정렬
     type(file)
     try:
         F= file.sort_values(by='후원번호', ascending=True)#가져온 데이터를 '후원번호'(=입금시간)를 기준으로 정렬
-    except:tkm.showwarning("경고", "항목을 확인할 수 없습니다.")#항목을 확인할 수 없어 에러가 날 경우
+    except:
+        tkm.showwarning("경고", "항목을 확인할 수 없습니다.")#항목을 확인할 수 없어 에러가 날 경우
     else:#에러가 나지 않을 경우 파일에 입금순으로 나열한 파일 입력
             with pd.ExcelWriter(f, mode='a', engine='openpyxl') as writer:
                 F.to_excel(writer, index=False, sheet_name="입금순서")
@@ -97,19 +101,19 @@ def second_work(f):#입금한 순서대로 정렬
 def load():
     root = Tk()
     root.withdraw()
-    try:
-        f=filedialog.askopenfilename(initialdir="./", title="Open Data files",
-                                    filetypes=(("data files", "*.csv;*.xls;*.xlsx"), ("all files", "*.*")))
-        print(f)
+    try:#폴더에서 파일 선택
+        f=filedialog.askopenfilename(parent=root, initialdir='\\', title="Open Data files",initialfile='tmp', \
+                                    filetypes=(("data files","*.xls;*.xlsx"), ("all files", "*.*")))
         work(f)
-    except:tkm.showwarning("경고", "잘못된 파일입니다.")
+    except:tkm.showwarning("경고", "잘못된 파일이거나 선택되지 않았습니다")
+
 
 def main():
     root = Tk()
     root.title("엑셀자동처리_텀블벅")
     root.geometry("300x100")
-    btn = Button(root,text="실행",command=load,padx=24)
-    btn2 = Button(root,text="실행 종료", command=root.destroy,padx=10)
+    btn = Button(root,text="실행",command=load,padx=24)#실행
+    btn2 = Button(root,text="실행 종료", command=root.quit,padx=10)#실행창 종료
     btn.pack()
     btn2.pack()
     root.mainloop()
